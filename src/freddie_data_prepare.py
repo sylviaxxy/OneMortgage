@@ -23,7 +23,7 @@ s3 = boto3.resource('s3')
 #BUCKET_NAME = 'onemortgage'
 my_bucket = s3.Bucket('onemortgage')
 
-print('Loading function')
+#print('Loading function')
 
 # use amazon lambda to download data from a list of url
 #def lambda_handler(event, context):
@@ -90,7 +90,6 @@ print('Loading function')
     #except Exception as e:
         #print(e)
         #print('Error getting object {} from bucket {}. Make sure they exist and your bucket is in the same region as this function.'.format(key, bucket))
-
 
 def download_zip(filename):
     # download zipped files from s3, will not used after update
