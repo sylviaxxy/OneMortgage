@@ -1,9 +1,71 @@
 # PySpark code to load freddie data correctly
-
-# unzip and upload all text files back to s3
-
 from __future__ import print_function
+import urllib
+import boto3
+import botocore
+import botocore.vendored.requests.packages.urllib3 as urllib3
+import zipfile
+import io
+import os
+import findspark
+import pyspark
+import datetime
+import psycopg2
+from pyspark.sql.functions import col
+from pyspark import SparkContext
+from pyspark.sql import SparkSession
+from pyspark import SparkConf
+from pyspark import SparkFiles
 
+#sc = SparkContext()
+findspark.init()
+
+s3 = boto3.resource('s3')
+#BUCKET_NAME = 'onemortgage'
+my_bucket = s3.Bucket('onemortgage')
+
+
+class Worker:
+
+    def __init__(self):
+        pass
+        self.conf = pyspark.SparkConf()
+        self.aws_id = os.environ.get('S3_ACCESS_KEY_ID')
+        self.aws_key = os.environ.get('S3_SECRET_ACCESS_KEY')
+        self.sc = pyspark.SparkContext()
+        self.hadoop_conf = sc._jsc.hadoopConfiguration()
+        self.hadoop_conf.set("fs.s3n.awsAccessKeyId", self.aws_id)
+        self.hadoop_conf.set("fs.s3n.awsSecretAccessKey", self.aws_key)
+        self.s3 = boto3.resource('s3')
+        self.sqlContext = pyspark.SQLContext(sc)
+
+    def read_from_s3(self):
+        bucket = self.s3.Bucket('gharchive')
+        for file in bucket.objects.all():
+            file_name, bucket = file.key, file.bucket_name
+            datetimes, file_names, string = None, file_name.split('.'), None
+            if file_names:
+                string = file_names[0]
+            if string:
+                datetimes = self.parsed(string)
+
+            df = sqlContext.read.json('s3n://' + bucket + '/' + file_name)
+            repos = df.filter(
+                        (col("type") == 'CreateEvent') &
+                        (col("payload")['object'] == 'repository')) \
+                      .rdd \
+                      .map(lambda row: (
+                        row['id'],
+                        row['repo']['name'],
+                        row['created_at'],
+                        row['public'],
+                        row['payload']
+                        )) \
+                      .collect()
+            yield(datetimes, repos)
+            break
+
+rom __future__ import print_function
 import urllib
 import boto3
 import botocore
@@ -105,6 +167,8 @@ def download_zip(filename):
             print("The object does not exist.")
         else:
             raise
+
+
 #def filename_constructor(year, quater):
     #baseurl = "https://freddiemac.embs.com/FLoan/Data/download.php?f=historical_data1_Q"
     #return baseurl +str(quater)+str(year)
