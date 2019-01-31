@@ -1,10 +1,15 @@
 # Use pyspark to process the freddie mac data
+# run pysaprk
+pyspark --packages org.postgresql:postgresql:9.4.1212 --master spark://ip-10-0-0-4:7077
+
 import os
 import re
 import boto3
 import pyspark
 import psycopg2
 from pyspark.sql.functions import col
+
+from pyspark.sql import SparkSession
 
 conf = pyspark.SparkConf()
 aws_id = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -15,11 +20,13 @@ hadoop_conf.set("fs.s3n.awsAccessKeyId", aws_id)
 s3 = boto3.resource('s3')
 sqlContext = pyspark.SQLContext(sc)
 
+
+
 # monthly performance files looks like 'historical_data1_time_Q11999.txt'
 # data = sc.textFile('s3a://onemortgage/freddie/historical_data1_time_Q[1-4][0-9]{4}.txt')
-data = sc.textFile('s3a://onemortgage/freddie/historical_data1_time_Q*.txt')
-data_1 = data.map(lambda x: x.split('|')).map(lambda x: x[0])
-data_1.take(10)
+data_new = sc.textFile('s3a://onemortgage/freddie/historical_data1_time_Q*.txt')
+data_1_new = data.map(lambda x: x.split('|')).map(lambda x: x[0])
+data_1_new.take(10)
 
 real_colnames_monthly = ["loan_seq_no", "mon_rep_period", "cur_actual_upb",
                          "cur_delinquency", "loan_age", "mon_to_maturity",
@@ -38,9 +45,38 @@ def define_submit_args():
     '--driver-class-path /home/ubuntu/postgresql-42.2.5.jar \
     --jars /home/ubuntu/postgresql-42.2.5.jar pyspark-shell'
 
+
+
 data = sc.textFile('s3a://onemortgage/freddie/historical_data1_Q*.txt')
 data_1 = data.map(lambda x: x.split('|'))
-data_2 = data_1.map(lambda x: [str(i) for i in x])
+data_2 = data_1.map(lambda x: [i.encode('utf-8') for i in x])
+
+df = sqlContext.createDataFrame(data_2)
+
+df.printSchema()
+df.describe('credit_score').show()
+df.describe('property_state').show()
+df.describe('first_payment_date').show()
+
+
+df.drop_duplicates()
+df.unionAll(df2)
+df.distinct()
+df.drop('id')
+df.dropna(subset=['age', 'name'])  # 传入一个list，删除指定字段中存在缺失的记录
+df.fillna({'age':10,'name':'abc'})  # 传一个dict进去，对指定的字段填充
+df.groupby('name').agg(F.max(df['age']))
+
+df.select(F.max(df.age))
+df.select(F.min(df.age))
+df.select(F.avg(df.age)) # 也可以用mean，一样的效果
+df.select(F.countDistinct(df.age)) # 去重后统计
+df.select(F.count(df.age)) # 直接统计，经试验，这个函数会去掉缺失值会再统计
+
+from pyspark.sql import Window
+df.withColumn("row_number", F.row_number().over(Window.partitionBy("a","b","c","d").orderBy("time"))).show() # row_number()函数
+bike_change_2days.registerTempTable('bike_change_2days')
+
 
 def col_names():
     real_colnames = ['credit_score','first_payment_date',
@@ -49,13 +85,16 @@ def col_names():
         'ori_dti', 'ori_upb', 'ori_ltv', 'ori_interest_rate',
         'channel', 'prepayment_penalty_flag', 'product_type', 'property_state', 'property_type',
         'postal_code', 'loan_seq_no', 'loan_purpose', 'ori_term',
-        'num_borrower','seller_name', 'servicer_name', 'super_conforming_flag', 'pre_harp_loan_seq_no'] #only harp data have the last col
+        'num_borrower','seller_name', 'servicer_name', 'super_conforming_flag'] # ,'pre_harp_loan_seq_no' only harp data have the last col
     return real_colnames
 
 def sql_context_read():
 
     df = sqlContext.read.format("com.databricks.spark.csv").option("inferSchema", "true").option("delimiter","|"). \
                 load("s3n://onemortgage/freddie/historical_data1_Q11999.txt")
+
+for c,n in zip(df.columns,real_colnames):
+    df = df.withColumnRenamed(c,n)
 
 def formalize_colnames(real_colnames):
     for c,n in zip(df.columns,real_colnames):
@@ -66,20 +105,12 @@ df = sqlContext.read.format("com.databricks.spark.csv").option("inferSchema", "t
                 load("s3a://onemortgage/freddie/historical_data1_Q11999.txt")
 
 # save_to_postgresql on AWS RDS
-url = "jdbc:postgresql://mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com:5432/mortgagepgsql"
-df.write \
-    .format("jdbc") \
-    .option("url", url) \
-    .option("driver","org.postgresql.Driver") \
-    .option("dbtable", "freddie_origin") \
-    .option("dbname", "mortgagepgsql") \s
-    .option("user", "sylviaxuinsight") \
-    .option("password", "564210126Aa") \
-    .mode("append")
+url = "jdbc:postgresql://mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com:5432/pgsql"
+df.write.format("jdbc").option("url", url).option("driver","org.postgresql.Driver").option("dbtable", "freddie_origination").option("dbname", "pgsql").option("user", "sylviaxuinsight").option("password", "568284947Aa").option("numPartitions", "10000").mode("overwrite").save()
 
 
-
-df22 = sqlContext.read.format("com.databricks.spark.csv").option("inferSchema", "true").option("delimiter","|"). \
+# Another way to read file using csv packages
+df2 = sqlContext.read.format("com.databricks.spark.csv").option("inferSchema", "true").option("delimiter","|"). \
                 load("s3a://onemortgage/freddie/historical_data1_time_Q11999.txt")
 
 
@@ -194,3 +225,12 @@ for record in cursor.fetchall():
     print(record)
 conn.commit()
 conn.close()
+
+
+real_colnames = ['credit_score','first_payment_date',
+'first_time_homebuyer_flag','maturity_date','msa',
+'mip', 'num_units', 'occupancy_status' , 'ori_cltv',
+'ori_dti', 'ori_upb', 'ori_ltv', 'ori_interest_rate',
+'channel', 'prepayment_penalty_flag', 'product_type', 'property_state', 'property_type',
+'postal_code', 'loan_seq_no', 'loan_purpose', 'ori_term',
+'num_borrower','seller_name', 'servicer_name', 'super_conforming_flag']
