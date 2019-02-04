@@ -62,7 +62,7 @@ df_freddie_p = read_text_file
 
 
 data = sc.textFile('s3a://onemortgage/freddie/historical_data1_Q*.txt')
-data_1_new = data.map(lambda x: x.split('|')
+data_1_new = data.map(lambda x: x.split('|'))
 data_2 = data_1.map(lambda x: [i.encode('utf-8') for i in x])
 
 df = sqlContext.createDataFrame(data_2)
