@@ -149,3 +149,8 @@ df_freddie_o = read_text_file(freddie_origination_url,freddie_origination_colnam
 df_freddie_p = read_text_file(freddie_performance_url, freddie_performance_colnames)
 df_fannie_o = read_text_file(fannie_origination_url,fannie_origination_colnames)
 df_fannie_p = read_text_file(fannie_performance_url,fannie_performance_colnames)
+
+df_freddie_o.show()
+df_freddie_p.show()
+df_fannie_o.show()
+df_fannie_p.show()
