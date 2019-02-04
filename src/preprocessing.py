@@ -20,7 +20,6 @@ sqlContext = pyspark.SQLContext(sc)
 #aws_id = os.environ.get('AWS_ACCESS_KEY_ID')
 #aws_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
 
-
 # Process Freddie Mac data
 def read_text_file(url_pattern,real_colnames):
     data = sc.textFile(url_pattern)
@@ -58,7 +57,7 @@ freddie_origination_colnames = ['credit_score',
                                 'servicer_name',
                                 'super_conforming_flag']
 
-freddie_performance_url = sc.textFile('s3a://onemortgage/freddie/historical_data1_time_Q*.txt')
+freddie_performance_url = 's3a://onemortgage/freddie/historical_data1_time_Q*.txt'
 freddie_performance_colnames = ["loan_seq_no",
                             "report_period",
                             "cur_actual_upb",
@@ -113,7 +112,7 @@ fannie_origination_colnames= ["loan_seq_no",
                                 "mortgage_insurance_type",
                                 "relocation_mortgage_indicator"]
 
-fannie_performance_url = 's3a://onemortgage/fannie/Performance_*.tx'
+fannie_performance_url = 's3a://onemortgage/fannie/Performance_*.txt'
 fannie_performance_colnames = ["loan_seq_no",
                             "report_period",
                             "servicer_name",
