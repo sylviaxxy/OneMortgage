@@ -12,8 +12,8 @@ import helper
 
 conf = pyspark.SparkConf()
 sc = pyspark.SparkContext()
-hadoop_conf = sc._jsc.hadoopConfiguration()
-hadoop_conf.set("fs.s3n.awsAccessKeyId", aws_id)
+#hadoop_conf = sc._jsc.hadoopConfiguration()
+#hadoop_conf.set("fs.s3n.awsAccessKeyId", aws_id)
 s3 = boto3.resource('s3')
 sqlContext = pyspark.SQLContext(sc)
 
