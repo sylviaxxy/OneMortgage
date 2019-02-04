@@ -20,30 +20,83 @@ sqlContext = pyspark.SQLContext(sc)
 
 
 # Process Freddie Mac data
-data_new = sc.textFile('s3a://onemortgage/freddie/historical_data1_time_Q*.txt')
-data_1_new = data.map(lambda x: x.split('|')).map(lambda x: x[0])
+def read_text_file(url_pattern,real_colnames):
+    data = sc.textFile(url_pattern)
+    data_1 = data.map(lambda x: x.split('|').map(lambda x: [i.encode('utf-8') for i in x])
+    df = sqlContext.createDataFrame(data_1)
+    for c,n in zip(df.columns, real_colnames):
+        df = df.withColumnRenamed(c , n)
+    return df
+
+freddie_origination_url = 's3a://onemortgage/freddie/historical_data1_Q*.txt'
+freddie_origination_colnames = ['credit_score',
+                                'first_payment_date',
+                                'first_time_homebuyer_flag',
+                                'maturity_date',
+                                'msa',
+                                'mip',
+                                'num_units',
+                                'occupancy_status' ,
+                                'original_cltv',
+                                'original_dti',
+                                'original_upb',
+                                'original_ltv',
+                                'original_interest_rate',
+                                'channel',
+                                'prepayment_penalty_flag',
+                                'product_type',
+                                'property_state',
+                                'property_type',
+                                'postal_code',
+                                'loan_seq_no',
+                                'loan_purpose',
+                                'ori_term',
+                                'num_borrower',
+                                'seller_name',
+                                'servicer_name',
+                                'super_conforming_flag']
+
+read_text_file(freddie_origination_url,freddie_origination_colnames)
+
+
+
+
+
+data = sc.textFile('s3a://onemortgage/freddie/historical_data1_Q*.txt')
+data_1_new = data.map(lambda x: x.split('|')
+data_2 = data_1.map(lambda x: [i.encode('utf-8') for i in x])
+
+df = sqlContext.createDataFrame(data_2)
 data_1_new.take(10)
-
-real_colnames_monthly = ["loan_seq_no", "report_period", "cur_actual_upb",
-                         "cur_delinquency", "loan_age", "mon_to_maturity",
-                         "repurchase", "modification", "zero_balance_code",
-                         "zero_balance_date", "cur_interest_rate", "cur_deferred_upb",
-                        "ddlpi", "mi_recoveries", "net_sale_proceeds", "non_mi_recoveries",
-                        "expenses", "legal_costs", "maintain_costs", "tax_insurance",
-                        "miscellaneous_expenses","actual_loss", "modification_cost",
-                        "step_modification", "deferred_payment_modification", "estimated_ltv"]
-
-
+real_colnames_monthly = ["loan_seq_no",
+                        "report_period",
+                        "cur_actual_upb",
+                         "cur_delinquency",
+                         "loan_age",
+                         "mon_to_maturity",
+                         "repurchase",
+                         "modification",
+                         "zero_balance_code",
+                         "zero_balance_date",
+                         "cur_interest_rate",
+                         "cur_deferred_upb",
+                        "ddlpi",
+                        "mi_recoveries",
+                        "net_sale_proceeds",
+                        "non_mi_recoveries",
+                        "expenses",
+                        "legal_costs",
+                        "maintain_costs",
+                        "tax_insurance",
+                        "miscellaneous_expenses",
+                        "actual_loss",
+                        "modification_cost",
+                        "step_modification",
+                        "deferred_payment_modification",
+                        "estimated_ltv"]
 
 for c,n in zip(df.columns,real_colnames_monthly):
     df = df.withColumnRenamed(c,n)
-
-def define_submit_args():
-    os.environ['PYSPARK_SUBMIT_ARGS'] = \
-    '--driver-class-path /home/ubuntu/postgresql-42.2.5.jar \
-    --jars /home/ubuntu/postgresql-42.2.5.jar pyspark-shell'
-
-
 
 data = sc.textFile('s3a://onemortgage/freddie/historical_data1_Q*.txt')
 data_1 = data.map(lambda x: x.split('|'))

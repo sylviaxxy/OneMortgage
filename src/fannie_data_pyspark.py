@@ -59,3 +59,11 @@ for c,n in zip(df2.columns,real_colnames_fannie):
 # save_to_postgresql on AWS RDS
 url = "jdbc:postgresql://mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com:5432/pgsql"
 df2.write.format("jdbc").option("url", url).option("driver","org.postgresql.Driver").option("dbtable", "fannie_origination").option("dbname", "pgsql").option("user", "sylviaxuinsight").option("password", "568284947Aa").option("numPartitions", "10000").mode("overwrite").save()
+
+jdbcDF = spark.read \
+    .format("jdbc") \
+    .option("url", "jdbc:postgresql:dbserver") \
+    .option("dbtable", "schema.tablename") \
+    .option("user", "username") \
+    .option("password", "password") \
+    .load()

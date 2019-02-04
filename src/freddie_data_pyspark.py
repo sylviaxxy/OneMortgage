@@ -28,14 +28,16 @@ data_new = sc.textFile('s3a://onemortgage/freddie/historical_data1_time_Q*.txt')
 data_1_new = data.map(lambda x: x.split('|')).map(lambda x: x[0])
 data_1_new.take(10)
 
-real_colnames_monthly = ["loan_seq_no", "mon_rep_period", "cur_actual_upb",
+real_colnames_monthly = ["loan_seq_no", "report_period", "cur_actual_upb",
                          "cur_delinquency", "loan_age", "mon_to_maturity",
                          "repurchase", "modification", "zero_balance_code",
                          "zero_balance_date", "cur_interest_rate", "cur_deferred_upb",
                         "ddlpi", "mi_recoveries", "net_sale_proceeds", "non_mi_recoveries",
                         "expenses", "legal_costs", "maintain_costs", "tax_insurance",
                         "miscellaneous_expenses","actual_loss", "modification_cost",
-                        "step_modification", "deferred_payment", "estimaed_ltv"]
+                        "step_modification", "deferred_payment_modification", "estimated_ltv"]
+
+
 
 for c,n in zip(df.columns,real_colnames_monthly):
     df = df.withColumnRenamed(c,n)

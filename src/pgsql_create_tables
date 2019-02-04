@@ -56,3 +56,85 @@ CREATE TABLE fannie_origination (
   mortgage_insurance_type integer,
   relocation_mortgage_indicator text
 );
+
+
+
+
+CREATE TABLE monthly_performance_freddie(
+  loan_seq_no text,
+  report_period date,
+  cur_actual_upb numeric,
+  cur_delinquency text,
+  loan_age integer,
+  mon_to_maturity integer,
+  repurchase text,
+  modification text,
+  zero_balance_code text,
+  zero_balance_date integer,
+  cur_interest_rate numeric,
+  cur_deferred_upb numeric,
+  ddlpi integer,
+  mi_recoveries numeric,
+  net_sale_proceeds numeric,
+  non_mi_recoveries numeric,
+  expenses numeric,
+  legal_costs numeric,
+  maintain_costs numeric,
+  tax_insurance numeric
+  miscellaneous_expenses numeric,
+  actual_loss numeric,
+  modification_cost numeric,
+  step_modification text,
+  deferred_payment_modification text,
+  estimated_ltv numeric
+ );
+
+
+
+CREATE TABLE monthly_performance_fannie(
+loan_seq_no text,
+report_period data,
+servicer_name text,
+cur_interest_rate numeric,
+cur_actual_upb numeric,
+loan_age integer,
+mon_to_maturity integer,
+adjusted_mon_to_maturity integer,
+maturity_date date,
+msa text,
+cur_delinquency text,
+modification text,
+zero_balance_code text,
+zero_balance_date date,
+last_paid_installment_date date,
+foreclosure_date date,
+disposition_date date,
+foreclosure_costs numeric,
+property_preservation_repair_costs numeric,
+asset_recovery_costs numeric,
+miscellaneous_expenses numeric
+associated_taxes numeric,
+net_sale_proceeds numeric,
+credit_enhancement_proceeds numeric,
+repurchase_make_whole_proceeds numeric,
+other_foreclousure_proceeds numeric,
+non_interest_bearing_upb numeric,
+principal_forgiveness_amount numeric,
+repurchase_make_whole_proceeds_flag text,
+foreclousure_principle_write_off_amount numeric,
+servicing_activity_indicator text
+);
+
+create raw_msa_county_mappings (
+  cbsa_code integer,
+  msad_code integer,
+  csa_code integer,
+  cbsa_name varchar,
+  msa_type varchar,
+  msad_name varchar,
+  state varchar,
+  state_fips integer,
+  county_fips integer,
+  county_type varchar,
+  state_abbreviation varchar
+)
