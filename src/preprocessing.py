@@ -1,6 +1,7 @@
 # PySpark code to process raw data
 # pyspark --packages org.postgresql:postgresql:9.4.1212 --master spark://ip-10-0-0-4:7077
 # spark-submit /home/ubuntu/OneMortgage/src/helper.py --packages org.postgresql:postgresql:9.4.1212 --master spark://ip-10-0-0-4:7077
+import os
 import re
 import boto3
 import pyspark
