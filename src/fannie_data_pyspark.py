@@ -1,23 +1,28 @@
 # PySpark code to process fannie mae data
 pyspark --packages org.postgresql:postgresql:9.4.1212 --master spark://ip-10-0-0-4:7077
 
+
 import os
 import re
 import boto3
 import pyspark
 import psycopg2
 from pyspark.sql.functions import col
-
 from pyspark.sql import SparkSession
 
-conf = pyspark.SparkConf()
-aws_id = os.environ.get('AWS_ACCESS_KEY_ID')
-aws_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
-sc = pyspark.SparkContext()
-hadoop_conf = sc._jsc.hadoopConfiguration()
-hadoop_conf.set("fs.s3n.awsAccessKeyId", aws_id)
-s3 = boto3.resource('s3')
-sqlContext = pyspark.SQLContext(sc)
+def pyspark_setting():
+    conf = pyspark.SparkConf()
+    aws_id = os.environ.get('AWS_ACCESS_KEY_ID')
+    aws_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
+    sc = pyspark.SparkContext()
+    hadoop_conf = sc._jsc.hadoopConfiguration()
+    hadoop_conf.set("fs.s3n.awsAccessKeyId", aws_id)
+    s3 = boto3.resource('s3')
+    sqlContext = pyspark.SQLContext(sc)
+
+
+pyspark_setting()
+
 
 data_fannie = sc.textFile('s3a://onemortgage/fannie/Acquisition_*.txt')
 data_1_f = data_fannie.map(lambda x: x.split('|'))

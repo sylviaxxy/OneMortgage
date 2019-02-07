@@ -115,7 +115,6 @@ df.write.format("jdbc").option("url", url).option("driver","org.postgresql.Drive
 df2 = sqlContext.read.format("com.databricks.spark.csv").option("inferSchema", "true").option("delimiter","|"). \
                 load("s3a://onemortgage/freddie/historical_data1_time_Q11999.txt")
 
-
 PG_HOST = 'mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com'
 PG_USER = 'sylviaxuinsight'
 PG_PSWD = '568284947Aa'

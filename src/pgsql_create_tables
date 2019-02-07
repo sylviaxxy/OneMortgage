@@ -138,3 +138,20 @@ create raw_msa_county_mappings (
   county_type varchar,
   state_abbreviation varchar
 )
+
+CREATE TABLE loan_contract(
+    loan_seq_no text,
+    agency_id text,
+    first_payment_date date,
+    first_time_homebuyer_flag text;
+    mip numeric,
+    original_loan_term numeric,
+    original_cltv numeric,
+    original_dti numeric,
+    original_upb numeric,
+    original_ltv numeric,
+    original_interest_rate numeric,
+    channel text,
+    product_type text,
+    loan_purpose text
+);
