@@ -271,7 +271,6 @@ def missing_handling_loan_contract():
 
 
 ################# New Version ####################
-
 import os
 import re
 import boto3
@@ -476,30 +475,47 @@ df_fannie_o_1 = add_agency_col(df_fannie_o, "fannie")
 df_fannie_p_1 = add_agency_col(df_fannie_p, "fannie")
 
 loan_contract_cols = ["loan_seq_no",
-                    "agency_id",
-                    "first_payment_date",
-                    "first_time_homebuyer_flag",
-                    "mip",
-                    "original_loan_term",
-                    "original_cltv",
-                    "original_dti",
-                    "original_upb",
-                    "original_ltv",
-                    "original_interest_rate",
-                    "channel",
-                    "product_type",
-                    "loan_purpose"]
+                        "agency_id",
+                        "credit_score",
+                        "first_payment_date",
+                        "first_time_homebuyer_flag",
+                        "original_loan_term",
+                        "original_cltv",
+                        "original_dti",
+                        "original_upb",
+                        "original_ltv",
+                        "original_interest_rate",
+                        "channel",
+                        "property_state",
+                        "loan_purpose"]
 
 maturity_freddie_ = ["loan_seq_no",
                     "first_payment_date",
                     "maturity_date"]
 
-
 maturity_fannie = ["loan_seq_no",
                     "first_payment_date",
                     "maturity_date"]
+
 df_freddie_o_temp = df_freddie_o_1.select(*loan_contract_cols)
+
+def df_freddie_o_unify(df):
+    df = df.na.replace(["R","B","C","T","9"],["R","B","C","N","N"],"channel")
+    df = df.withColumn("originate_year", F.year(F.to_date(df.first_payment_date, "yyyyMM")))
+    df = df.withColumn("originate_month", F.month(F.to_date(df.first_payment_date, "yyyyMM")))
+    return df
+
+df_freddie_o_temp = df_freddie_o_unify(df_freddie_o_temp)
+
 df_fannie_o_temp = df_fannie_o_1.select(*loan_contract_cols)
+def df_fannie_o_cleaner(df_fannie_o_temp):
+    df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
+
+df_fannie_o_temp.select(F.collect_set('channel').alias('channel_value')).first()['channel_value']
+def missing_checker(df):
+    df_fannie_o_temp.filter((df_fannie_o_temp["channel"] == "") | df_fannie_o_temp["channel"].isNull() | isnan(df_fannie_o_temp["channel"])).count()
+    return df_missing_result
+
 
 ##from pyspark.sql.functions import col
 ##F.rowNumber().over(Window.partitionBy("loan_seq_no").orderBy(col("unit_count").desc())
@@ -514,9 +530,11 @@ df_loans_temp = df_loans_temp.withColumn("originate_month", F.month(F.to_date(df
 sql_create_loan_contract = "CREATE TABLE loan_contract( \
     loan_seq_no text, \
     agency_id text, \
-    first_payment_date text,\
+    credit_score integer, \
+    first_payment_date date, \
+    first_payment_year integer, \
+    first_payment_month integer, \
     first_time_homebuyer_flag text, \
-    mip numeric, \
     original_loan_term numeric, \
     original_cltv numeric, \
     original_dti numeric, \
@@ -524,7 +542,7 @@ sql_create_loan_contract = "CREATE TABLE loan_contract( \
     original_ltv numeric, \
     original_interest_rate numeric, \
     channel text, \
-    product_type text, \
+    property_state text, \
     loan_purpose text, \
     originate_year integer, \
     originate_month integer);"
@@ -568,13 +586,12 @@ def schema_transformer_loan_contract(df_loans_temp):
                                   "original_interest_rate"]
     for col_name in numeric_cols_loan_contract:
         df_loans_temp = df_loans_temp.withColumn(col_name,col(col_name).cast(DoubleType()))
-
     return df_loans_temp
 
-df_loans_temp.printSchema()
 
-df_loans_save = df_loans_temp
+df_loans_save = schema_transformer_loan_contract(df_loans_temp)
 
+df_loans_save.printSchema()
 
 jbdc_config_loan_contract_write = {
                 'url':'jdbc:postgresql://mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com:5432/pgsql',
@@ -585,9 +602,8 @@ jbdc_config_loan_contract_write = {
                 'password': '568284947Aa',
                 'numPartitions':'10000'}
 
-def write_table_pgsql_new(df,jdbc_config):
+def write_table_pgsql(df,jdbc_config):
     # save_to_postgresql on AWS RDS
-
     df.write.format("jdbc").option("url", jdbc_config['url']). \
                 option("driver",jdbc_config['driver']). \
                 option("dbtable", jdbc_config['dbtable']). \
