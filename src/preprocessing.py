@@ -269,7 +269,6 @@ def create_loan_contract(df_freddie_o, df_freddie_p, df_fannie_o, df_fannie_p):
 
 def missing_handling_loan_contract():
 
-
 ################# New Version ####################
 import os
 import re
@@ -487,7 +486,8 @@ loan_contract_cols = ["loan_seq_no",
                         "original_interest_rate",
                         "channel",
                         "property_state",
-                        "loan_purpose"]
+                        "loan_purpose",
+                        "seller_name"]
 
 maturity_freddie_ = ["loan_seq_no",
                     "first_payment_date",
@@ -508,24 +508,27 @@ def df_freddie_o_unify(df):
 df_freddie_o_temp = df_freddie_o_unify(df_freddie_o_temp)
 
 df_fannie_o_temp = df_fannie_o_1.select(*loan_contract_cols)
-def df_fannie_o_cleaner(df_fannie_o_temp):
-    df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
+def df_fannie_o_unify(df):
+    #df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
+    df = df.withColumn("originate_year", F.year(F.to_date(df.first_payment_date, "MM/yyyy")))
+    df = df.withColumn("originate_month", F.month(F.to_date(df.first_payment_date, "MM/yyyy")))
+    return df
+
+df_fannie_o_temp = df_fannie_o_unify(df_fannie_o_temp)
 
 df_fannie_o_temp.select(F.collect_set('channel').alias('channel_value')).first()['channel_value']
-def missing_checker(df):
+
+def missing_checker_channel(df):
     df_fannie_o_temp.filter((df_fannie_o_temp["channel"] == "") | df_fannie_o_temp["channel"].isNull() | isnan(df_fannie_o_temp["channel"])).count()
     return df_missing_result
-
 
 ##from pyspark.sql.functions import col
 ##F.rowNumber().over(Window.partitionBy("loan_seq_no").orderBy(col("unit_count").desc())
 
-df_freddie_o_temp.columns == df_fannie_o_temp.columns
+def cheker_before_union(df1,df2):
+    assert df_freddie_o_temp.columns == df_fannie_o_temp.columns
 
 df_loans_temp = df_freddie_o_temp.union(df_fannie_o_temp)
-
-df_loans_temp = df_loans_temp.withColumn("originate_year", F.year(F.to_date(df_loans_temp.first_payment_date, "yyyyMM")))
-df_loans_temp = df_loans_temp.withColumn("originate_month", F.month(F.to_date(df_loans_temp.first_payment_date, "yyyyMM")))
 
 sql_create_loan_contract = "CREATE TABLE loan_contract( \
     loan_seq_no text, \
@@ -544,6 +547,7 @@ sql_create_loan_contract = "CREATE TABLE loan_contract( \
     channel text, \
     property_state text, \
     loan_purpose text, \
+    seller_name text, \
     originate_year integer, \
     originate_month integer);"
 
@@ -562,17 +566,14 @@ def execute_pgsql(pg_config,sql):
                                 port = pg_config['port'])
     except:
         print("unable to connect to the database!")
-
     cur = conn.cursor()
     try:
         cur.execute(sql)
     except:
         print("unable to execute the sql syntax!")
-
     conn.commit()
     conn.close()
     cur.close()
-
     print("operations completed, commit connect and close cursor")
 
 execute_pgsql(pg_config,sql_create_loan_contract)
@@ -580,7 +581,7 @@ execute_pgsql(pg_config,sql_create_loan_contract)
 def schema_transformer_loan_contract(df_loans_temp):
     """Transform the type of a df as defined struct"""
     # Cast the schema into correct format
-    numeric_cols_loan_contract = ["mip","original_loan_term",
+    numeric_cols_loan_contract = ["original_loan_term",
                                   "original_cltv","original_dti",
                                   "original_upb","original_ltv",
                                   "original_interest_rate"]
@@ -603,7 +604,6 @@ jbdc_config_loan_contract_write = {
                 'numPartitions':'10000'}
 
 def write_table_pgsql(df,jdbc_config):
-    # save_to_postgresql on AWS RDS
     df.write.format("jdbc").option("url", jdbc_config['url']). \
                 option("driver",jdbc_config['driver']). \
                 option("dbtable", jdbc_config['dbtable']). \
@@ -614,4 +614,58 @@ def write_table_pgsql(df,jdbc_config):
                 mode("overwrite").save()
     print("successfully write the dataframe into pgsqbl table")
 
+#write table 'loan_contract' into postgresql
 write_table_pgsql(df_loans_save,jbdc_config_loan_contract_write)
+
+
+loan_performance_cols =  ["loan_seq_no",
+                        "agency_id"
+                        "report_period",
+                        "cur_actual_upb",
+                        "cur_deferred_upb",
+                        "cur_delinquency",
+                        "cur_interest_rate",
+                        "zero_balance_code",
+                        "zero_balance_date",
+                        "mon_to_maturity",
+                        "net_sale_proceeds",
+                        "loan_age"]
+
+df_freddie_p_temp = df_freddie_p_1.select(*loan_performance_cols)
+
+def df_freddie_p_unify(df):
+    #df = df.na.replace(["R","B","C","T","9"],["R","B","C","N","N"],"channel")
+    df = df.withColumn("report_period_year", F.year(F.to_date(df.report_period, "yyyyMM")))
+    df = df.withColumn("report_period_month", F.month(F.to_date(df.report_period, "yyyyMM")))
+    return df
+
+df_freddie_p_temp = df_freddie_p_unify(df_freddie_p_temp)
+
+df_fannie_p_temp = df_fannie_p_1.select(*loan_performance_cols)
+def df_fannie_p_unify(df):
+    #df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
+    df = df.withColumn("report_period_year", F.year(F.to_date(df.report_period, "MM/yyyy")))
+    df = df.withColumn("report_period_month", F.month(F.to_date(df.report_period, "MM/yyyy")))
+    return df
+
+df_fannie_p_temp = df_fannie_p_unify(df_fannie_p_temp)
+
+df_freddie_p_temp.columns == df_fannie_p_temp.columns
+
+df_loan_performance_temp = df_freddie_p_temp.union(df_fannie_p_temp)
+
+sql_create_loan_performance = "CREATE TABLE loan_performance( \
+    loan_seq_no text, \
+    agency_id text, \
+    report_period date, \
+    cur_actual_upb , \
+    cur_deferred_upb, \
+    cur_delinquency, \
+    cur_interest_rate, \
+    zero_balance_code, \
+    zero_balance_date, \
+    mon_to_maturity, \
+    net_sale_proceeds, \
+    loan_age, \
+    report_period_year integer, \
+    report_period_month integer);"
