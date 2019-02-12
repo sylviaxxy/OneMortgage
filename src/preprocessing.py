@@ -474,7 +474,7 @@ df_fannie_o_1 = add_agency_col(df_fannie_o, "fannie")
 df_fannie_p_1 = add_agency_col(df_fannie_p, "fannie")
 
 loan_contract_cols = ["loan_seq_no",
-                        "agency_id",
+                       "agency_id",
                         "credit_score",
                         "first_payment_date",
                         "first_time_homebuyer_flag",
@@ -489,13 +489,9 @@ loan_contract_cols = ["loan_seq_no",
                         "loan_purpose",
                         "seller_name"]
 
-maturity_freddie_ = ["loan_seq_no",
-                    "first_payment_date",
-                    "maturity_date"]
-
-maturity_fannie = ["loan_seq_no",
-                    "first_payment_date",
-                    "maturity_date"]
+maturity_cols = ["loan_seq_no",
+                 "first_payment_date",
+                "maturity_date"]
 
 df_freddie_o_temp = df_freddie_o_1.select(*loan_contract_cols)
 
@@ -652,20 +648,65 @@ df_fannie_p_temp = df_fannie_p_unify(df_fannie_p_temp)
 
 df_freddie_p_temp.columns == df_fannie_p_temp.columns
 
-df_loan_performance_temp = df_freddie_p_temp.union(df_fannie_p_temp)
+df_loan_p_temp = df_freddie_p_temp.union(df_fannie_p_temp)
+
+def schema_transformer_loan_performance(df_loan_performance_temp):
+    """Transform the type of a df as defined struct"""
+    # Cast the schema into correct format
+    numeric_cols_loan_contract = ["original_loan_term",
+                                  "original_cltv","original_dti",
+                                  "original_upb","original_ltv",
+                                  "original_interest_rate"]
+    for col_name in numeric_cols_loan_contract:
+        df_loans_temp = df_loans_temp.withColumn(col_name,col(col_name).cast(DoubleType()))
+    return df_loans_temp
+
+df_loan_p_save = schema_transformer_loan_contract(df_loan_p_temp)
+df_loan_p_save.printSchema()
 
 sql_create_loan_performance = "CREATE TABLE loan_performance( \
-    loan_seq_no text, \
-    agency_id text, \
-    report_period date, \
-    cur_actual_upb , \
-    cur_deferred_upb, \
-    cur_delinquency, \
-    cur_interest_rate, \
-    zero_balance_code, \
-    zero_balance_date, \
-    mon_to_maturity, \
-    net_sale_proceeds, \
-    loan_age, \
-    report_period_year integer, \
-    report_period_month integer);"
+                    loan_seq_no text, \
+                    agency_id text, \
+                    report_period date, \
+                    cur_actual_upb numeric, \
+                    cur_deferred_upb numeric, \
+                    cur_delinquency text, \
+                    cur_interest_rate numeric , \
+                    zero_balance_code text, \
+                    zero_balance_date date, \
+                    mon_to_maturity integer, \
+                    net_sale_proceeds numeric, \
+                    loan_age integer, \
+                    report_period_year integer, \
+                    report_period_month integer);"
+
+execute_pgsql(pg_config,sql_create_loan_performance)
+
+jbdc_config_loan_performance_write = {
+                'url':'jdbc:postgresql://mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com:5432/pgsql',
+                'driver': 'org.postgresql.Driver',
+                'dbtable':'loan_performance',
+                'dbname': 'pgsql',
+                'user': 'sylviaxuinsight',
+                'password': '568284947Aa',
+                'numPartitions':'10000'}
+
+write_table_pgsql(df_loan_p_save,jbdc_config_loan_performance_write)
+
+property_cols=["loan_seq_no",
+                "number_of_units",
+                "occupancy_status",
+                "property_state",
+                "postal_code"]
+df_property =
+
+borrower_cols =["loan_seq_no",
+                "credit_score",
+                "number_of_borrowers",
+                "co_borrower_credit_score"]
+df_borrower =
+
+hpi_cols = ["hpi_date",
+            "hpi_index"]
+
+df_hpi =
