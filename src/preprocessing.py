@@ -408,7 +408,7 @@ def fannie_origination_load():
                                     "number_of_units",
                                     "occupancy_status",
                                     "property_state",
-                                    "zip_code",
+                                    "postal_code",
                                     "mip",
                                     "product_type",
                                     "co_borrower_credit_score",
@@ -495,10 +495,13 @@ maturity_cols = ["loan_seq_no",
 
 df_freddie_o_temp = df_freddie_o_1.select(*loan_contract_cols)
 
+#import org.apache.spark.sql.functions.{dayofmonth,from_unixtime,month, unix_timestamp, year}
+
 def df_freddie_o_unify(df):
     df = df.na.replace(["R","B","C","T","9"],["R","B","C","N","N"],"channel")
     df = df.withColumn("originate_year", F.year(F.to_date(df.first_payment_date, "yyyyMM")))
     df = df.withColumn("originate_month", F.month(F.to_date(df.first_payment_date, "yyyyMM")))
+    df = df.withColumn("first_payment_date_new", from_unixtime(unix_timestamp(df("first_payment_date"), "yyyyMM")))
     return df
 
 df_freddie_o_temp = df_freddie_o_unify(df_freddie_o_temp)
@@ -508,6 +511,7 @@ def df_fannie_o_unify(df):
     #df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
     df = df.withColumn("originate_year", F.year(F.to_date(df.first_payment_date, "MM/yyyy")))
     df = df.withColumn("originate_month", F.month(F.to_date(df.first_payment_date, "MM/yyyy")))
+    df = df.withColumn("first_payment_date_new", from_unixtime(unix_timestamp(df("first_payment_date"), "MM/yyyy")))
     return df
 
 df_fannie_o_temp = df_fannie_o_unify(df_fannie_o_temp)
@@ -709,4 +713,14 @@ df_borrower =
 hpi_cols = ["hpi_date",
             "hpi_index"]
 
-df_hpi =
+hpi_url = 's3a://onemortgage/index/CSUSHPINSA.csv'
+
+lines = sc.textFile(hpi_url)
+parts = lines.map(lambda l: l.split(','))
+df_hpi = spark.createDataFrame(parts, ['hpi_date','hpi_index'])
+
+census = ["state",
+        "population",
+        "year"]
+
+df_census = spar.createDataFrame(,[])
