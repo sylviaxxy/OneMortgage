@@ -55,7 +55,7 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         id='avg_rate-graph-1',
         figure={
             'data': [
-                {'x': xData, 'y': yData, 'name': 'Average Interest Rate'，'type': 'scatter', 'mode': 'lines+markers'}
+                {'x': xData, 'y': yData, 'name': 'Average Interest Rate','type': 'scatter', 'mode': 'lines+markers'}
             ]
             'layout': {
                 'titie' : 'Average Interest Rate vs year'
