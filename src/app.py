@@ -39,14 +39,14 @@ colors = {
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     html.H1(
-        children='Hello Dash',
+        children='One Mortage',
         style={
             'textAlign': 'center',
             'color': colors['text']
         }
     ),
 
-    html.Div(children='Dash: A web application framework for Python.', style={
+    html.Div(children='Average Interest Rate vs Year.', style={
         'textAlign': 'center',
         'color': colors['text']
     }),
