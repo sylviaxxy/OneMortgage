@@ -24,8 +24,8 @@ cur = conn.cursor()
 sql_query_1= "SELECT * FROM avg_rate_us_by_year ORDER BY originate_year ASC"
 cur.execute(sql_query_1)
 databases = cur.fetchall()
-xData = [table_avg_rate[0] for database in databases]
-yData = [table_avg_rate[1]  for database in databases]
+xData = [database[0] for database in databases]
+yData = [database[1]  for database in databases]
 conn.commit()
 conn.close()
 cur.close()
