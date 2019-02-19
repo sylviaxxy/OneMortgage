@@ -58,9 +58,9 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
                 {'x': xData, 'y': yData, 'name': 'Average Interest Rate','type': 'scatter', 'mode': 'lines+markers'}
             ],
             'layout': {
-                'titie':'Average Interest Rate vs year'
-                'plot_bgcolor':colors['background'],
-                'paper_bgcolor':colors['background'],
+                'titie': 'Average Interest Rate vs year'
+                'plot_bgcolor': colors['background'],
+                'paper_bgcolor': colors['background'],
                 'font': {
                     'color': colors['text']
                 }
