@@ -59,8 +59,8 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
             ],
             'layout': {
                 'titie' : 'Average Interest Rate vs year'
-                'plot_bgcolor': colors['background'],
-                'paper_bgcolor': colors['background'],
+                'plot_bgcolor' : colors['background'],
+                'paper_bgcolor' : colors['background'],
                 'font': {
                     'color': colors['text']
                 }
