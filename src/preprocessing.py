@@ -615,7 +615,7 @@ def write_table_pgsql(df,jdbc_config):
 sql_create_avg_rate_us_by_year="CREATE TABLE avg_rate_us_by_year( \
     originate_year integer, \
     avg_interest_rate numeric, \
-    count numeric);"
+    loan_count numeric);"
 
 execute_pgsql(pg_config,sql_create_avg_rate_us_by_year)
 #write table 'loan_contract' into postgresql

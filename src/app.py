@@ -3,7 +3,6 @@ import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
-
 import psycopg2
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -21,14 +20,14 @@ conn = psycopg2.connect(database = pg_config['dbname'], \
                         host = pg_config['pg_host'], \
                         port = pg_config['port'])
 cur = conn.cursor()
-sql_query_1 = ""
+sql_query_1= "SELECT * FROM avg_rate_us_by_year ORDER BY originate_year ASC"
 cur.execute(sql_query_1)
 databases = cur.fetchall()
-xData = [databse[0] for database in databases]
-sql_query_2 = ""
-cur.execute(sql_query_2)
-frequecies = cur.fetchall()
-yData = [freq[0] for freq in frequncies]
+xData = [table_avg_rate[0] for database in databases]
+yData = [table_avg_rate[1]  for database in databases]
+conn.commit()
+conn.close()
+cur.close()
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
@@ -52,13 +51,13 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
     }),
 
     dcc.Graph(
-        id='example-graph-2',
+        id='avg_rate-graph-1',
         figure={
             'data': [
-                {'x': [1, 2, 3], 'y': [4, 1, 2], 'type': 'bar', 'name': 'CA'},
-                {'x': [1, 2, 3], 'y': [2, 4, 5], 'type': 'bar', 'name': 'NY'},
+                {'x': xData, 'y': yData, 'name': 'Average Interest Rate'，'type': 'scatter', 'mode': 'lines+markers'}
             ]
             'layout': {
+                'titie' : 'Average Interest Rate vs year'
                 'plot_bgcolor': colors['background'],
                 'paper_bgcolor': colors['background'],
                 'font': {
