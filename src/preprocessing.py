@@ -501,22 +501,20 @@ def df_freddie_o_unify(df):
     df = df.na.replace(["R","B","C","T","9"],["R","B","C","N","N"],"channel")
     df = df.withColumn("originate_year", F.year(F.to_date(df.first_payment_date, "yyyyMM")))
     df = df.withColumn("originate_month", F.month(F.to_date(df.first_payment_date, "yyyyMM")))
-    df = df.withColumn("first_payment_date_new", from_unixtime(unix_timestamp(df("first_payment_date"), "yyyyMM")))
+    df = df.withColumn("first_payment_date_formatted", unix_timestamp("first_payment_date","yyyyMM").cast("double").cast("timestamp"))
     return df
 
 df_freddie_o_temp = df_freddie_o_unify(df_freddie_o_temp)
 
 df_fannie_o_temp = df_fannie_o_1.select(*loan_contract_cols)
 def df_fannie_o_unify(df):
-    #df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
+    df = df.na.replace(["R","B","C"],["R","B","C"],"channel")
     df = df.withColumn("originate_year", F.year(F.to_date(df.first_payment_date, "MM/yyyy")))
     df = df.withColumn("originate_month", F.month(F.to_date(df.first_payment_date, "MM/yyyy")))
-    df = df.withColumn("first_payment_date_new", from_unixtime(unix_timestamp(df("first_payment_date"), "MM/yyyy")))
+    df = df.withColumn("first_payment_date_formatted", unix_timestamp("first_payment_date","MM/yyyy").cast("double").cast("timestamp"))
     return df
 
 df_fannie_o_temp = df_fannie_o_unify(df_fannie_o_temp)
-
-df_fannie_o_temp.select(F.collect_set('channel').alias('channel_value')).first()['channel_value']
 
 def missing_checker_channel(df):
     df_fannie_o_temp.filter((df_fannie_o_temp["channel"] == "") | df_fannie_o_temp["channel"].isNull() | isnan(df_fannie_o_temp["channel"])).count()
@@ -535,8 +533,6 @@ sql_create_loan_contract = "CREATE TABLE loan_contract( \
     agency_id text, \
     credit_score integer, \
     first_payment_date date, \
-    first_payment_year integer, \
-    first_payment_month integer, \
     first_time_homebuyer_flag text, \
     original_loan_term numeric, \
     original_cltv numeric, \
@@ -549,7 +545,8 @@ sql_create_loan_contract = "CREATE TABLE loan_contract( \
     loan_purpose text, \
     seller_name text, \
     originate_year integer, \
-    originate_month integer);"
+    originate_month integer, \
+    first_payment_timestamp timestamp);"
 
 pg_config ={'pg_host':'mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com',
             'pg_user':'sylviaxuinsight',
@@ -614,10 +611,34 @@ def write_table_pgsql(df,jdbc_config):
                 mode("overwrite").save()
     print("successfully write the dataframe into pgsqbl table")
 
+
+sql_create_avg_rate_us_by_year="CREATE TABLE avg_rate_us_by_year( \
+    originate_year integer, \
+    avg_interest_rate numeric, \
+    count numeric);"
+
+execute_pgsql(pg_config,sql_create_avg_rate_us_by_year)
 #write table 'loan_contract' into postgresql
 write_table_pgsql(df_loans_save,jbdc_config_loan_contract_write)
 
 
+def avg_rate_us_by_year(df):
+    avg_rate_us_by_year = df.groupBy("originate_year").agg(F.mean("original_interest_rate"), F.count("original_interest_rate"))
+
+avg_rate_us_by_year = df_loans_save.groupBy("originate_year").agg(F.mean("original_interest_rate"), \
+                        F.count("original_interest_rate")).orderBy('originate_year', ascending=True)
+
+jbdc_config_loan_contract_write = {
+                'url':'jdbc:postgresql://mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com:5432/pgsql',
+                'driver': 'org.postgresql.Driver',
+                'dbtable':'avg_rate_us_by_year',
+                'dbname': 'pgsql',
+                'user': 'sylviaxuinsight',
+                'password': '568284947Aa',
+                'numPartitions':'10000'}
+write_table_pgsql(avg_rate_us_by_year,jbdc_config_loan_contract_write)
+
+################# TO DO ##########################
 loan_performance_cols =  ["loan_seq_no",
                         "agency_id"
                         "report_period",
