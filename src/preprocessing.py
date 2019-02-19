@@ -586,7 +586,6 @@ def schema_transformer_loan_contract(df_loans_temp):
         df_loans_temp = df_loans_temp.withColumn(col_name,col(col_name).cast(DoubleType()))
     return df_loans_temp
 
-
 df_loans_save = schema_transformer_loan_contract(df_loans_temp)
 
 df_loans_save.printSchema()
