@@ -612,11 +612,12 @@ def write_table_pgsql(df,jdbc_config):
 
 
 sql_create_avg_rate_us_by_year="CREATE TABLE avg_rate_us_by_year( \
-    originate_year integer, \
-    avg_interest_rate numeric, \
-    loan_count numeric);"
+                                originate_year integer, \
+                                avg_interest_rate numeric, \
+                                loan_count numeric);"
 
-execute_pgsql(pg_config,sql_create_avg_rate_us_by_year)
+execute_pgsql(pg_config,sql_create_avg_rate_us_by_yea›r)
+
 #write table 'loan_contract' into postgresql
 write_table_pgsql(df_loans_save,jbdc_config_loan_contract_write)
 
@@ -637,7 +638,7 @@ jbdc_config_loan_contract_write = {
                 'numPartitions':'10000'}
 write_table_pgsql(avg_rate_us_by_year,jbdc_config_loan_contract_write)
 
-################# TO DO ##########################
+######## to do #############
 loan_performance_cols =  ["loan_seq_no",
                         "agency_id"
                         "report_period",
@@ -740,7 +741,7 @@ parts = lines.map(lambda l: l.split(','))
 df_hpi = spark.createDataFrame(parts, ['hpi_date','hpi_index'])
 
 census = ["state",
-        "population",
-        "year"]
+         "population",
+         "year"]
 
 df_census = spar.createDataFrame(,[])
