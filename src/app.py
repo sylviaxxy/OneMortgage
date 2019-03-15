@@ -15,10 +15,10 @@ pg_config ={'pg_host':'mortgagepgsql.civoxbadxkwr.us-east-1.rds.amazonaws.com',
             'dbname':'pgsql',
             'port':'5432'}
 
-conn = psycopg2.connect(database = pg_config['dbname'], \
-                        user = pg_config['pg_user'], \
-                        password = pg_config['pg_password'],\
-                        host = pg_config['pg_host'], \
+conn = psycopg2.connect(database = pg_config['dbname'],
+                        user = pg_config['pg_user'],
+                        password = pg_config['pg_password'],
+                        host = pg_config['pg_host'],
                         port = pg_config['port'])
 cur = conn.cursor()
 sql_query_1= "SELECT * FROM avg_rate_us_by_year ORDER BY originate_year ASC"
