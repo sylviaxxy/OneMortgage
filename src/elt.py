@@ -1,11 +1,10 @@
 # PySpark code to process raw data
 # pyspark --packages org.postgresql:postgresql:9.4.1212 --master spark://ip-10-0-0-4:7077
 # spark-submit /home/ubuntu/OneMortgage/src/helper.py --packages org.postgresql:postgresql:9.4.1212 --master spark://ip-10-0-0-4:7077
-import sys
-sys.path.append("./helpers/")
 
 import os
 import re
+import sys
 import boto3
 import pyspark
 import psycopg2
@@ -14,7 +13,6 @@ from pyspark.sql.functions import lit
 from pyspark.sql.functions import udf
 from pyspark.sql import functions as F
 from pyspark.sql import SparkSession
-import helper
 
 def pyspark_setting():
     conf = pyspark.SparkConf()
@@ -26,9 +24,7 @@ def pyspark_setting():
     s3 = boto3.resource('s3')
     sqlContext = pyspark.SQLContext(sc)
 
-
 pyspark_setting()
-
 
 # Process Freddie Mac data
 def read_text_file(url_pattern,real_colnames):
@@ -721,31 +717,3 @@ sql_create_loan_performance = "CREATE TABLE loan_performance( \
         'numPartitions': '10000'}
 
     write_table_pgsql(df_loan_p_save, jbdc_config_loan_performance_write)
-
-    property_cols = ["loan_seq_no",
-                     "number_of_units",
-                     "occupancy_status",
-                     "property_state",
-                     "postal_code"]
-    df_property =
-
-    borrower_cols = ["loan_seq_no",
-                     "credit_score",
-                     "number_of_borrowers",
-                     "co_borrower_credit_score"]
-    df_borrower =
-
-    hpi_cols = ["hpi_date",
-                "hpi_index"]
-
-    hpi_url = 's3a://onemortgage/index/CSUSHPINSA.csv'
-
-    lines = sc.textFile(hpi_url)
-    parts = lines.map(lambda l: l.split(','))
-    df_hpi = spark.createDataFrame(parts, ['hpi_date', 'hpi_index'])
-
-    census = ["state",
-              "population",
-              "year"]
-
-    df_census = spar.createDataFrame(, [])
