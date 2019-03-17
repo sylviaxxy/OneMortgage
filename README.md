@@ -33,11 +33,11 @@ Raw data are published by Freddie Mac and Fannie Mae, which is a large portion o
 
 
 ### Data Sources
-  1. Freddie Mac: [NYC TLC Taxi Trip data](http://www.nyc.gov/html/tlc/html/about/trip_record_data.shtml), for period from Jan 2009 to Jun 2016 (~550 GB in total after generating additional data with `generate_raw_data/generator_run.sh`),
 
-  2. Fannie Mae: [MTA Bus Time historical data](http://web.mta.info/developers/MTA-Bus-Time-historical-data.html), which is treated as if the bus location data were the real-time taxi location data (streamed at ~1,000 records/s).
+  1. Freddie Mac: [Freddie Mac data](https://freddiemac.embs.com/FLoan/Data/download2.php), for period from 2000 to 2017
 
-
+  2. Fannie Mae: [Fannie Mae data](https://loanperformancedata.fanniemae.com/lppub/index.html#Portfolio), from 2000 to 2018
+ 
 ### Environment Setup
 
 Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https://github.com/InsightDataScience/pegasus) on your local machine, and clone this repository using
