@@ -1,4 +1,4 @@
-/* SQL scripts to create table in PostgreSQL db*/
+/* SQL scripts to create table in PostgreSQL db */
 
 CREATE TABLE loan_contract(
     loan_seq_no text,
@@ -16,35 +16,6 @@ CREATE TABLE loan_contract(
     product_type text,
     loan_purpose text
 );
-
-CREATE TABLE monthly_performance(
-  loan_seq_no text,
-  report_period date,
-  cur_actual_upb numeric,
-  cur_delinquency text,
-  loan_age integer,
-  mon_to_maturity integer,
-  repurchase text,
-  modification text,
-  zero_balance_code text,
-  zero_balance_date integer,
-  cur_interest_rate numeric,
-  cur_deferred_upb numeric,
-  ddlpi integer,
-  mi_recoveries numeric,
-  net_sale_proceeds numeric,
-  non_mi_recoveries numeric,
-  expenses numeric,
-  legal_costs numeric,
-  maintain_costs numeric,
-  tax_insurance numeric
-  miscellaneous_expenses numeric,
-  actual_loss numeric,
-  modification_cost numeric,
-  step_modification text,
-  deferred_payment_modification text,
-  estimated_ltv numeric
- );
 
 CREATE TABLE monthly_performance(
     loan_seq_no text,
@@ -81,15 +52,23 @@ CREATE TABLE monthly_performance(
 );
 
 CREATE TABLE raw_msa_county_mappings (
-  cbsa_code integer,
-  msad_code integer,
-  csa_code integer,
-  cbsa_name varchar,
-  msa_type varchar,
-  msad_name varchar,
-  state varchar,
-  state_fips integer,
-  county_fips integer,
-  county_type varchar,
-  state_abbreviation varchar
-)
+    cbsa_code integer,
+    msad_code integer,
+    csa_code integer,
+    cbsa_name varchar,
+    msa_type varchar,
+    msad_name varchar,
+    state varchar,
+    state_fips integer,
+    county_fips integer,
+    county_type varchar,
+    state_abbreviation varchar
+);
+
+CREATE TABLE properties (
+);
+
+
+
+CREATE TABLE borrowers (
+);
