@@ -3,6 +3,8 @@
 
 This is a project for the Insight Data Engineering program (New York, Spring 2019).
 
+[Demo Slideshare](https://www.slideshare.net/SylviaXinyuXu/one-mortgage)
+
 # Introduction
 
 Mortgage is an important method for people to get financed to buy home. Around 78% of houses in US in 2018 were purchased with mortgage. 
@@ -40,21 +42,17 @@ Raw data are published by Freddie Mac and Fannie Mae, which are a large portion 
 ### Environment Setup
 
 Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https://github.com/InsightDataScience/pegasus) on your local machine, and clone this repository using
-`git clone https://github.com/AndreyBozhko/TaxiOptimizer`.
+`git clone git@github.com:sylviaxxy/OneMortgage.git`.
 
 > AWS security groups setting: Add your local IP to your AWS VPC inbound rules
 
-> Pegasus Tip: In $PEGASUS_HOME/install/download_tech, change Zookeeper version to 3.4.12, and follow the notes in docs/pegasus_setup.odt to configure Pegasus
-
+> Pegasus 
 #### CLUSTER STRUCTURE:
 
-To reproduce my environment, 5 m4.large AWS EC2 instances are needed:
+To reproduce my environment, 4 m4.large AWS EC2 instances and  1 micro instance are needed:
 
-- (4 nodes) Spark Cluster - Batch
-- Dash Node
-
-To create the clusters, put the appropriate `master.yml` and `workers.yml` files in each `cluster_setup/<clustername>` folder (following the template in `cluster_setup/dummy.yml.template`), list all the necesary software in `cluster_setup/<clustername>/install.sh`, and run the `cluster_setup/create-clusters.sh` script.
-
+- Spark Cluster Node (4 m4.large instances) for batch job
+- Dash Node (a micro instance qualified for  AWS free-tier)
 
 ##### Airflow setup
 
@@ -75,13 +73,14 @@ Configuration settings for PostgreSQL, AWS S3 bucket, as well as the schemas for
 ## How to start
 
 ### Run the Batch Job
+Running `bash/run_batch.sh` on the master of *spark-batch-cluster*  will run the batch job only once.
 
-### Schedule the Batch Job
-Running `airflow/schedule.sh` on the master of *spark-batch-cluster* will add the batch job to the scheduler. The batch job is set to execute every quater, and it can be started and monitored using Airflow UI.
+### Use Airflow to schedule the Batch Job
+Running `bash/run_airflow.sh` on the master of *spark-batch-cluster* will add the batch job to the scheduler. The batch job is set to execute every quater, and it can be started and monitored using Airflow UI.
 
 ### Frontend:
 
-Run `src/app/run_all.sh` to run the Dash app.
+Run `src/bash/run_app.sh` to run the Dash app.
 
 ## Author
 

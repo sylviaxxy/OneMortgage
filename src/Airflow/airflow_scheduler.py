@@ -1,25 +1,34 @@
-from airflow import DAG
-from airflow.operators.bash_operator import BashOperator
-from datetime import datetime, timedelta
+from __future__ import absolute_import, unicode_literals
 import os
+from airflow.operators import BashOperator
+from airflow.models import DAG
+from datetime import datetime, timedelta
 
 airflow_args = {
-    'owner': 'sylviaxu',
+    'owner': 'airflow',
     'depends_on_past': False,
     'retries': 0,
-    'start_date': datetime(2019, 2, 12),
-    'retry_delay': timedelta(minutes=1)
+    'start_date': datetime(2019, 1, 01, 0, 0),
+    'retry_delay': datetime.timedelta(minutes=5) # airflow will run next quarter
 }
 
-dag = DAG('airflow_quaterly', default_args=airflow_args, schedule_interval='0 90 * * TUE')
+dag = DAG('onemortgage_monthly',
+          default_args=airflow_args,
+          schedule_interval= '@monthly')
+
 now = datetime.now()
 
-download_data = BashOperator(task_id='download_data',
-                             bash_command='python3 /home/ubuntu/insight-patents/src/python/download.py {0} {0} True'.format(now.strftime('%Y$m%d')),
+download_fannie = BashOperator(task_id='download_fannie',
+                             bash_command="/home/ubuntu/OneMortgage/src/bash/download_fannie.sh",
+                             dag=dag)
+
+download_freddie = BashOperator(task_id='download_freddie',
+                             bash_command='/home/ubuntu/OneMortgage/src/bash/download_freddie.sh',
                              dag=dag)
 
 process_data = BashOperator(task_id='process_data',
-                            bash_command='PYTHONPATH=/home/ubuntu/insight-patents/dist/insight_patents-0.0.0-py3.5.egg python3 /home/ubuntu/insight-patents/src/python/parse_patents.py --bulk=false --date {}'.format(now.strftime('%Y$m%d')),
-                            dag=dag)  # neo4j specific upload
+                            bash_command='/home/ubuntu/OneMortgage/src/bash/run_batch.sh',
+                            dag=dag)
 
-process_data.set_upstream(download_data)
+process_data.set_upstream([download_freddie, download_fannie])
+

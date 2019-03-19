@@ -382,6 +382,9 @@ def schema_transformer_loan_performance(df_loan_performance_temp):
 
 
 def main():
+    """
+    The main function for ETL job
+    """
     pyspark_setting()
 
     df_freddie_o = freddie_origination_load()
@@ -471,3 +474,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
