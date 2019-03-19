@@ -2,4 +2,6 @@ boto3
 botocore
 pyspark==2.3.1
 psycopg2
+requests
+urllib3
 airflow

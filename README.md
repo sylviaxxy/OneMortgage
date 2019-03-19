@@ -81,7 +81,8 @@ Run `bash/run_airflow.sh` on the master of *spark-batch-cluster* to add the batc
 After complete the batch processing, run `bash/run_app.sh` to run the Dash app.
 
 ## Folder Structure
--
+```
+.
 |____requirements.txt
 |____data_pipeline.png
 |____README.md
@@ -104,5 +105,6 @@ After complete the batch processing, run `bash/run_app.sh` to run the Dash app.
 | |____batch_processing
 | | |____elt.py
 
+```
 ## Author
 Sylvia Xu
