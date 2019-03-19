@@ -24,18 +24,19 @@ Raw data are published by Freddie Mac and Fannie Mae, which are a large portion 
 
 ![data_pipeline](data_pipeline.png "Data Pipeline")
 
-***File System***: historical taxi trip data are ingested from S3 bucket into Spark, which computes top-n pickup locations within every cell of the grid for every 10-minute interval, and saves the result into the PostgreSQL database.
+***Data Download***: python is used to download datasets from corresponding websites 
 
-***Batch Processing***: real-time taxi location data are streamed by Kafka into Spark Streaming, where the stream is joined with the results of the batch job to produce the answers for every entry in the stream.
+***File System***: AWS S3 is used to store unzipped txt files
 
-***Data Warehouse***: 
+***Batch Processing***: ETL job are done using Spark (pyspark) 
 
-> The whole process is scheduled using Airflow.
+***Data Warehouse***:  Postgre SQL on AWS RDS instance
 
+> The download and etl process is scheduled using Airflow.
 
 ### Data Sources
 
-  1. Freddie Mac: [Freddie Mac data](https://freddiemac.embs.com/FLoan/Data/download2.php), for period from 2000 to 2017
+  1. Freddie Mac: [Freddie Mac data](https://freddiemac.embs.com/FLoan/Data/download2.php), for period from 1999 to 2017
 
   2. Fannie Mae: [Fannie Mae data](https://loanperformancedata.fanniemae.com/lppub/index.html#Portfolio), from 2000 to 2018
  
@@ -46,7 +47,8 @@ Install and configure [AWS CLI](https://aws.amazon.com/cli/) and [Pegasus](https
 
 > AWS security groups setting: Add your local IP to your AWS VPC inbound rules
 
-> Pegasus 
+> Pegasus: Set up as the guide of Pegasus.
+
 #### CLUSTER STRUCTURE:
 
 To reproduce my environment, 4 m4.large AWS EC2 instances and  1 micro instance are needed:
@@ -56,32 +58,51 @@ To reproduce my environment, 4 m4.large AWS EC2 instances and  1 micro instance 
 
 ##### Airflow setup
 
-The Apache Airflow scheduler can be installed on the master node of *spark-batch-cluster*. Follow the instructions in `docs/airflow_install.txt` to launch the Airflow server.
+The Apache Airflow scheduler can be installed on the master node of *spark-batch-cluster*.
 
 ##### PostgreSQL setup
 
 The PostgreSQL database sits on AWS RDS instance.
-
 
 ##### Configurations
 
 Configuration settings for PostgreSQL, AWS S3 bucket, as well as the schemas for the data are stored.
 
 
-##### Schema
-
 ## How to start
 
-### Run the Batch Job
-Running `bash/run_batch.sh` on the master of *spark-batch-cluster*  will run the batch job only once.
+### Run the Batch Job Once Only
+Run `bash/run_batch.sh` on the master of *spark-batch-cluster*  to run the batch job only once.
 
-### Use Airflow to schedule the Batch Job
-Running `bash/run_airflow.sh` on the master of *spark-batch-cluster* will add the batch job to the scheduler. The batch job is set to execute every quater, and it can be started and monitored using Airflow UI.
+### If want to use Airflow to schedule the Batch Job 
+Run `bash/run_airflow.sh` on the master of *spark-batch-cluster* to add the batch job to the scheduler. The batch job is set to execute every month, and it can be started and monitored using Airflow UI.
 
-### Frontend:
+### Frontend
+After complete the batch processing, run `bash/run_app.sh` to run the Dash app.
 
-Run `src/bash/run_app.sh` to run the Dash app.
+## Folder Structure
+-
+|____requirements.txt
+|____data_pipeline.png
+|____README.md
+|____src
+| |____database
+| | |____create_schema.sql
+| |____app
+| | |____app.py
+| |____bash
+| | |____run_batch.sh
+| | |____download_fannie.sh
+| | |____download_freddie.sh
+| | |____run_app.sh
+| | |____run_airflow.sh
+| |____Airflow
+| | |____airflow_scheduler.py
+| |____data_download
+| | |____freddie_data_prepare.py
+| | |____fannie_data_prepare.py
+| |____batch_processing
+| | |____elt.py
 
 ## Author
-
 Sylvia Xu
